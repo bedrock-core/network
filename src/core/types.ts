@@ -33,13 +33,16 @@ import { Graph } from 'graph-data-structure';
  *    explicit reverse edge target->source is also inserted (two directed edges).
  */
 export interface Rule<T> {
+
   /**
    * Decide if an edge from source->target should exist.
    * Must be pure; no side effects; deterministic for given inputs.
    */
   match: (sourceObj: T, targetObj: T) => boolean;
+
   /** When true, also create target->source edge. */
   bidirectional?: boolean;
+
   /** Optional cheap pre-filter to skip most non-viable targets before calling match. */
   targetFilter?: (targetObj: T) => boolean;
 }

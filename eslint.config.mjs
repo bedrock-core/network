@@ -1,35 +1,29 @@
-import js from "@eslint/js";
-import globals from "globals";
-import tseslint from "typescript-eslint";
-import json from "@eslint/json";
 import markdown from "@eslint/markdown";
-import css from "@eslint/css";
-import { defineConfig } from "eslint/config";
 import stylistic from "@stylistic/eslint-plugin";
+import { defineConfig } from "eslint/config";
+import tseslint from "typescript-eslint";
 
 
 export default defineConfig([
-  { files: ["**/*.{js,mjs,cjs}"], plugins: { js }, extends: ["js/recommended"], languageOptions: { globals: globals.node } },
-  tseslint.configs.recommended,
-  { files: ["**/*.json"], plugins: { json }, language: "json/json", extends: ["json/recommended"] },
-  { files: ["**/*.jsonc"], plugins: { json }, language: "json/jsonc", extends: ["json/recommended"] },
-  { files: ["**/*.json5"], plugins: { json }, language: "json/json5", extends: ["json/recommended"] },
+  {
+    ignores: [
+      ".yarn/**",
+      "dist/**",
+      "node_modules/**",
+      "**/*.*js",
+    ],
+  },
+
   { files: ["**/*.md"], plugins: { markdown }, language: "markdown/gfm", extends: ["markdown/recommended"] },
-  { files: ["**/*.css"], plugins: { css }, language: "css/css", extends: ["css/recommended"] },
+
   {
     files: ["**/*.ts"],
-
-    plugins: {
-      "@typescript-eslint": tseslint,
-      // "minecraft-linting": minecraftLinting,
-      "@stylistic": stylistic,
-    },
+    plugins: { "@stylistic": stylistic, "@typescript-eslint": tseslint.plugin },
 
     languageOptions: {
       parser: tseslint.parser,
       ecmaVersion: "latest",
       sourceType: "module",
-
       parserOptions: {
         project: "tsconfig.json",
         tsconfigRootDir: ".",
@@ -229,7 +223,7 @@ export default defineConfig([
       "@stylistic/computed-property-spacing": ["warn"],
       "@stylistic/dot-location": ["warn", "property"],
       "@stylistic/eol-last": ["warn"],
-      "@stylistic/func-call-spacing": ["warn", "never"],
+      // "@stylistic/func-call-spacing": ["warn", "never"],
       "@stylistic/function-call-argument-newline": ["warn", "consistent"],
       "@stylistic/function-paren-newline": ["warn", "consistent"],
       "@stylistic/generator-star-spacing": "off",
@@ -316,7 +310,7 @@ export default defineConfig([
       "@stylistic/quotes": ["warn", "single",
         {
           avoidEscape: true,
-          allowTemplateLiterals: true,
+          allowTemplateLiterals: 'always',
         }
       ],
 
@@ -356,7 +350,6 @@ export default defineConfig([
       "@stylistic/jsx-sort-props": "off",
       "@stylistic/jsx-tag-spacing": "off",
       "@stylistic/jsx-wrap-multilines": "off",
-      "minecraft-linting/avoid-unnecessary-command": "error",
     },
   }
 ]);

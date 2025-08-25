@@ -43,6 +43,7 @@ export class NetworkManager<T> {
         this.tryApplyRuleEdge(other, node, rule);
       }
     }
+
     return node;
   }
 
@@ -101,13 +102,14 @@ export class NetworkManager<T> {
         return n;
       }
     }
+
     return undefined;
   }
 
   private tryApplyRuleEdge(
     source: Node<T>,
     target: Node<T>,
-    rule: Rule<T>
+    rule: Rule<T>,
   ): void {
     if (rule.targetFilter && !rule.targetFilter(target.data)) {
       return;

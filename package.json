@@ -38,7 +38,8 @@
   "scripts": {
     "build": "rimraf dist && tsc -p tsconfig.json",
     "clean": "rimraf dist",
-    "lint": "yarn dlx eslint ."
+    "lint": "eslint .",
+    "sdks": "yarn dlx @yarnpkg/sdks vscode"
   },
   "packageManager": "yarn@4.9.3",
   "devDependencies": {

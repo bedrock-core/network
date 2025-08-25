@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "ES2022",
+    "module": "esnext",
     "declaration": true,
-    "declarationMap": false, // avoid IDE jumping to source via .d.ts map
+    "declarationMap": false,
     "sourceMap": false,
     "outDir": "dist",
     "rootDir": "src",
-    "stripInternal": true, // future use if we tag internals with /** @internal */
+    "stripInternal": true,
     "strict": true,
     "moduleResolution": "node",
     "esModuleInterop": true,
