@@ -4,15 +4,16 @@ import { Network, Node, Rule } from './types';
  * Handles node creation/removal.
  * Edges are updated when nodes are added or removed.
  */
-export class NetworkManager<T> {
-  readonly network: Network<T> = new Network<T>();
+export class NetworkManager<T, N extends Network<T> = Network<T>> {
+  readonly network: N;
 
   /**
    * Creates a new instance of the NetworkManager.
-   * @param network An optional existing network to manage. Useful for custom network implementations.
+   * @param networkClass An optional constructor for a custom network implementation.
+   * @param network An optional existing network to manage. 
    */
-  constructor(network?: Network<T>) {
-    this.network = network ?? new Network<T>();
+  constructor(networkClass?: new () => N, network?: N) {
+    this.network = network ?? (networkClass ? new networkClass() : new Network<T>() as N);
   }
 
   /**

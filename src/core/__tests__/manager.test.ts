@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { NetworkManager } from '../../core/manager';
+import { Network } from '../../core/types';
 import type { Rule } from '../../core/types';
 
 interface Item { value: number; kind?: string }
@@ -78,5 +79,36 @@ describe('NetworkManager', () => {
     mgr.updateNodeData('b', { value: 50 }); // Should NOT remove edge a->b automatically
     const aAdjPost = mgr.network.adjacent(a)!;
     expect([...aAdjPost].map(n => n.id)).toContain(b.id);
+  });
+
+  it('auto-instantiates provided network class subtype when only constructor is passed', () => {
+    class CustomNetwork extends Network<Item> {
+      readonly kind = 'custom';
+    }
+    const mgr = new NetworkManager<Item, CustomNetwork>(CustomNetwork);
+    expect(mgr.network).toBeInstanceOf(CustomNetwork);
+    expect((mgr.network as CustomNetwork).kind).toBe('custom');
+  });
+
+  it('uses provided existing network instance when passed as second argument', () => {
+    class CustomNetwork extends Network<Item> {
+      value = 123;
+    }
+    const instance = new CustomNetwork();
+    const mgr = new NetworkManager<Item, CustomNetwork>(undefined, instance);
+    expect(mgr.network).toBe(instance);
+    instance.value = 999;
+    expect((mgr.network as CustomNetwork).value).toBe(999); // same object
+  });
+
+  it('prefers provided instance over class when both are supplied', () => {
+    class CustomNetwork extends Network<Item> {
+      tag = 'fromClass';
+    }
+    const inst = new CustomNetwork();
+    inst.tag = 'fromInstance';
+    const mgr = new NetworkManager<Item, CustomNetwork>(CustomNetwork, inst);
+    expect(mgr.network).toBe(inst);
+    expect((mgr.network as CustomNetwork).tag).toBe('fromInstance');
   });
 });
