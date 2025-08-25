@@ -1,9 +1,18 @@
 {
   "compilerOptions": {
-    "target": "es2024",
+    "target": "ES2022",
+    "module": "ES2022",
+    "declaration": true,
+    "declarationMap": false, // avoid IDE jumping to source via .d.ts map
+    "sourceMap": false,
+    "outDir": "dist",
+    "rootDir": "src",
+    "stripInternal": true, // future use if we tag internals with /** @internal */
     "strict": true,
     "moduleResolution": "node",
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true
   },
   "include": [
     "src/**/*"

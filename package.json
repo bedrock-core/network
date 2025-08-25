@@ -1,5 +1,45 @@
 {
   "name": "@bedrock-core/network",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Rule-driven directed graph abstraction",
+  "keywords": [
+    "graph",
+    "network",
+    "data",
+    "structure",
+    "immutable",
+    "algorithm",
+    "typescript"
+  ],
+  "license": "MIT",
+  "author": "DrAv0011",
+  "contributors": [
+    {
+      "name": "DrAv0011",
+      "email": "contact@drav.dev",
+      "url": "https://drav.dev"
+    }
+  ],
+  "repository": "github:bedrock-core/network",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "rimraf dist && tsc -p tsconfig.json",
+    "clean": "rimraf dist",
+    "lint": "yarn dlx eslint ."
+  },
   "packageManager": "yarn@4.9.3",
   "devDependencies": {
     "@eslint/css": "^0.10.0",
@@ -10,6 +50,7 @@
     "eslint": "^9.34.0",
     "globals": "^16.3.0",
     "jiti": "^2.5.1",
+    "rimraf": "^5.0.5",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.40.0"
   },
