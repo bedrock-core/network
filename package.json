@@ -1,6 +1,5 @@
 {
   "name": "@bedrock-core/network",
-  "private": true,
   "version": "0.1.0",
   "description": "Rule-driven directed graph abstraction",
   "keywords": [
