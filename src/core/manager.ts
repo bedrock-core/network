@@ -8,6 +8,14 @@ export class NetworkManager<T> {
   readonly network: Network<T> = new Network<T>();
 
   /**
+   * Creates a new instance of the NetworkManager.
+   * @param network An optional existing network to manage. Useful for custom network implementations.
+   */
+  constructor(network?: Network<T>) {
+    this.network = network ?? new Network<T>();
+  }
+
+  /**
    * Create a new node in the network.
    * Edges produced:
    *  - Outgoing edges from this node using its rules.
