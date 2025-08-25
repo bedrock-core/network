@@ -25,7 +25,7 @@ export default defineConfig([
       ecmaVersion: "latest",
       sourceType: "module",
       parserOptions: {
-        project: "tsconfig.json",
+        project: ["tsconfig.json", "tsconfig.eslint.json"],
         tsconfigRootDir: ".",
       },
     },

@@ -39,6 +39,8 @@
     "build": "rimraf dist && tsc -p tsconfig.json",
     "clean": "rimraf dist",
     "lint": "eslint .",
+    "test": "vitest run",
+    "coverage": "vitest run --coverage",
     "sdks": "yarn dlx @yarnpkg/sdks vscode"
   },
   "packageManager": "yarn@4.9.3",
@@ -48,12 +50,15 @@
     "@eslint/json": "^0.13.1",
     "@eslint/markdown": "^7.2.0",
     "@stylistic/eslint-plugin": "^5.2.3",
+    "@types/node": "^24.3.0",
+    "@vitest/coverage-v8": "^3.2.4",
     "eslint": "^9.34.0",
     "globals": "^16.3.0",
     "jiti": "^2.5.1",
     "rimraf": "^5.0.5",
     "typescript": "^5.9.2",
-    "typescript-eslint": "^8.40.0"
+    "typescript-eslint": "^8.40.0",
+    "vitest": "^3.2.4"
   },
   "dependencies": {
     "graph-data-structure": "^4.5.0"
