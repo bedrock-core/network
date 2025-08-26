@@ -10,7 +10,7 @@ export class NetworkManager<T, N extends Network<T> = Network<T>> {
   /**
    * Creates a new instance of the NetworkManager.
    * @param networkClass An optional constructor for a custom network implementation.
-   * @param network An optional existing network to manage. 
+   * @param network An optional existing network to manage.
    */
   constructor(networkClass?: new () => N, network?: N) {
     this.network = network ?? (networkClass ? new networkClass() : new Network<T>() as N);
@@ -67,14 +67,6 @@ export class NetworkManager<T, N extends Network<T> = Network<T>> {
       return;
     }
 
-    for (const other of this.network.nodes) {
-      if (other === node) {
-        continue;
-      }
-
-      this.network.removeEdge(node, other);
-      this.network.removeEdge(other, node);
-    }
     this.network.removeNode(node);
   }
 
@@ -103,8 +95,7 @@ export class NetworkManager<T, N extends Network<T> = Network<T>> {
     return this.findNode(id);
   }
 
-  // ---------- Internals ----------
-
+  /* @internal */
   private findNode(id: string): Node<T> | undefined {
     for (const n of this.network.nodes) {
       if (n.id === id) {
@@ -115,6 +106,7 @@ export class NetworkManager<T, N extends Network<T> = Network<T>> {
     return undefined;
   }
 
+  /* @internal */
   private tryApplyRuleEdge(
     source: Node<T>,
     target: Node<T>,

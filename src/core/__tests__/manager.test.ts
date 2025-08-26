@@ -87,7 +87,7 @@ describe('NetworkManager', () => {
     }
     const mgr = new NetworkManager<Item, CustomNetwork>(CustomNetwork);
     expect(mgr.network).toBeInstanceOf(CustomNetwork);
-    expect((mgr.network as CustomNetwork).kind).toBe('custom');
+    expect(mgr.network.kind).toBe('custom');
   });
 
   it('uses provided existing network instance when passed as second argument', () => {
@@ -98,7 +98,7 @@ describe('NetworkManager', () => {
     const mgr = new NetworkManager<Item, CustomNetwork>(undefined, instance);
     expect(mgr.network).toBe(instance);
     instance.value = 999;
-    expect((mgr.network as CustomNetwork).value).toBe(999); // same object
+    expect(mgr.network.value).toBe(999); // same object
   });
 
   it('prefers provided instance over class when both are supplied', () => {
@@ -109,6 +109,6 @@ describe('NetworkManager', () => {
     inst.tag = 'fromInstance';
     const mgr = new NetworkManager<Item, CustomNetwork>(CustomNetwork, inst);
     expect(mgr.network).toBe(inst);
-    expect((mgr.network as CustomNetwork).tag).toBe('fromInstance');
+    expect(mgr.network.tag).toBe('fromInstance');
   });
 });
