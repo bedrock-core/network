@@ -62,7 +62,7 @@ jobs:
       - name: Publish to npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: yarn npm publish --access public --non-interactive
+        run: yarn npm publish --access public
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
