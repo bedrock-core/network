@@ -59,10 +59,9 @@ jobs:
       - name: Build dist
         run: yarn build
 
-      - name: Publish to npm
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: yarn npm publish --access public
+      - uses: simenandre/publish-with-yarn@v1
+        with:
+          npm-auth-token: ${{ secrets.NPM_TOKEN }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
