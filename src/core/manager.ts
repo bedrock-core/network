@@ -1,4 +1,4 @@
-import { Network, Node, Rule } from './types';
+import { Network, Node, Rule, RuleDirection } from './types';
 
 /**
  * Handles node creation/removal.
@@ -39,17 +39,20 @@ export class NetworkManager<T, N extends Network<T> = Network<T>> {
     const node: Node<T> = { id, data, rules: [...rules] };
     this.network.addNode(node);
 
+    // Directional independent handshakes:
+    // 1. Attempt node -> other (requires node outgoing|both + other incoming|both rule match pair)
+    // 2. Attempt other -> node similarly.
     for (const other of this.network.nodes) {
       if (other === node) {
         continue;
       }
 
-      for (const rule of node.rules) {
-        this.tryApplyRuleEdge(node, other, rule);
+      if (this.tryHandshake(node, other)) {
+        this.network.addEdge(node, other);
       }
 
-      for (const rule of other.rules) {
-        this.tryApplyRuleEdge(other, node, rule);
+      if (this.tryHandshake(other, node)) {
+        this.network.addEdge(other, node);
       }
     }
 
@@ -106,24 +109,45 @@ export class NetworkManager<T, N extends Network<T> = Network<T>> {
     return undefined;
   }
 
+  /**
+   * Attempts a handshake between two nodes.
+   * @param source The source node.
+   * @param target The target node.
+   * @returns True if the handshake was successful, false otherwise.
+   */
   /* @internal */
-  private tryApplyRuleEdge(
-    source: Node<T>,
-    target: Node<T>,
-    rule: Rule<T>,
-  ): void {
-    if (rule.targetFilter && !rule.targetFilter(target.data)) {
-      return;
+  private tryHandshake(source: Node<T>, target: Node<T>): boolean {
+    for (const sRule of source.rules) {
+      const sDir = sRule.direction ?? RuleDirection.Both;
+
+      if (sDir === RuleDirection.Incoming) {
+        continue;
+      }
+
+      if (sRule.targetFilter && !sRule.targetFilter(target.data)) {
+        continue;
+      }
+
+      if (!sRule.match(source.data, target.data)) {
+        continue;
+      }
+
+      // Need any accepting rule on target.
+      for (const tRule of target.rules) {
+        const tDir = tRule.direction ?? RuleDirection.Both;
+
+        if (tDir === RuleDirection.Outgoing) {
+          continue;
+        }
+
+        if (!tRule.match(target.data, source.data)) {
+          continue;
+        }
+
+        return true; // first success
+      }
     }
 
-    if (!rule.match(source.data, target.data)) {
-      return;
-    }
-
-    this.network.addEdge(source, target);
-
-    if (rule.bidirectional) {
-      this.network.addEdge(target, source);
-    }
+    return false; // no success
   }
 }

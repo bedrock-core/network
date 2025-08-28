@@ -2,6 +2,8 @@
 
 Rule‑driven directed graph abstraction. Nodes carry domain data plus an immutable set of edge‑generation rules. Edges are materialized only when nodes are inserted (or removed); updating node data does **not** recompute edges.
 
+> ⚠️ Beta Status: This library is currently in active beta. Expect breaking changes in any release without prior deprecation warnings until a stable 1.0.0 is published. Pin exact versions if you need stability.
+
 ## Install
 
 ```bash
@@ -13,22 +15,26 @@ npm install @bedrock-core/network
 ## Quick Example
 
 ```ts
-import { NetworkManager, Rule } from '@bedrock-core/network';
+import { NetworkManager, Rule, RuleDirection } from '@bedrock-core/network';
 
 interface Item { value: number }
 
 const greaterThan: Rule<Item> = {
+  direction: RuleDirection.Outgoing, // initiates edges to smaller valued nodes when accepted
   match: (s, t) => s.value > t.value,
-  // bidirectional?: false
-  // targetFilter?: (t) => t.value < 100
+};
+const acceptSmaller: Rule<Item> = {
+  direction: RuleDirection.Incoming, // only accepts connections from higher valued nodes
+  match: (self, initiator) => initiator.value > self.value,
 };
 
 const mgr = new NetworkManager<Item>();
 
 // Reuse the same rule object for multiple nodes (safe & common)
-mgr.createNode('a', { value: 10 }, [greaterThan]);
-mgr.createNode('b', { value: 5 },  [greaterThan]); // evaluates a.rules vs b and b.rules vs a
-mgr.createNode('c', { value: 20 }, [greaterThan]);
+mgr.createNode('a', { value: 10 }, [greaterThan, acceptSmaller]);
+mgr.createNode('b', { value: 5 },  [acceptSmaller]); // b can accept from higher but can’t initiate upwards
+mgr.createNode('c', { value: 20 }, [greaterThan, acceptSmaller]); // c can initiate to a & b (who accept),
+// and a accepts c (a<-c) but b only accepts from higher so c->b edge forms; b has no outgoing to c.
 
 // Edges are fixed until nodes are (re)inserted
 mgr.updateNodeData('b', { value: 999 }); // DOES NOT trigger recomputation
@@ -37,11 +43,14 @@ mgr.updateNodeData('b', { value: 999 }); // DOES NOT trigger recomputation
 ## Core Concepts
 
 - Rule
-  - Pure functions deciding if an edge `source -> target` should exist.
-  - Shape: `{ match(sourceObj, targetObj, ...); bidirectional?; targetFilter? }`.
-  - Reusable: the same rule instance can be shared across many nodes.
-  - Must be treated as immutable once any node is created with it.
-  - `targetFilter` is an optional cheap pre‑filter to prune most candidates before `match`.
+  - Pure edge intent / acceptance predicate.
+  - Shape: `{ direction?: 'outgoing'|'incoming'|'both'; match; targetFilter? }`.
+  - Direction semantics:
+    - outgoing: rule may initiate edges to targets it matches (handshake requires target has an incoming/both rule that matches back).
+    - incoming: rule may accept edges initiated by others that match it.
+    - both (default): participates in both roles.
+  - `targetFilter` (optional) is only applied on the initiating side before calling `match`.
+  - Rules are reusable & treated as immutable post node creation.
 
 - Node
   - `{ id, data, rules }`.
@@ -52,14 +61,11 @@ mgr.updateNodeData('b', { value: 999 }); // DOES NOT trigger recomputation
   - Thin subclass of the underlying graph implementation.
 
 - NetworkManager
-  - Orchestrates node lifecycle:
-    1. Insert new node.
-    2. For each existing node:
-       - Evaluate newNode.rules for outgoing edges new -> existing.
-       - Evaluate existing.rules for incoming edges existing -> new.
-    3. Bidirectional rules add the reverse directed edge explicitly.
-  - Removal deletes the node and all incident edges.
-  - Data update only mutates the `data` field.
+  - On insertion of node N, for each existing node E performs two independent handshakes:
+    1. N -> E: needs an initiating rule on N (outgoing|both) whose `targetFilter` (if any) and `match(N,E)` succeed AND an accepting rule on E (incoming|both) whose `match(E,N)` succeeds.
+    2. E -> N: same logic with roles swapped.
+  - If only the forward handshake succeeds you get a one‑way edge N->E; if both succeed you have two directed edges.
+  - Removal deletes node + incident edges; data updates do not change edges.
 
 ## Edge Evaluation Lifecycle
 
@@ -95,9 +101,17 @@ mgr.createNode('n2', { value: 4 }, [connectedIfEven]); // edges formed here
 
 Mutating `connectedIfEven` after nodes are created is undefined behavior (do not).
 
-## Bidirectional Rules
+## Directionality & One‑Way Edges
 
-If `bidirectional: true` and `match` returns true for `source -> target`, an explicit reverse edge `target -> source` is also added (two directed edges).
+Edges are created per direction via handshake (initiator rule + acceptor rule). Reverse direction is independent. This permits:
+
+```ts
+const wantsAll: Rule<Item> = { direction: RuleDirection.Outgoing, match: () => true };
+const onlyAcceptHigh: Rule<Item> = { direction: RuleDirection.Incoming, match: (self, init) => init.value > self.value };
+
+// Node X (value 5) only has incoming acceptance; Node Y (value 10) has outgoing initiation.
+// Y->X edge forms (Y initiates, X accepts). X->Y does NOT (X cannot initiate).
+```
 
 ## Performance Tips
 
@@ -110,7 +124,7 @@ If `bidirectional: true` and `match` returns true for `source -> target`, an exp
 - Rules are immutable post node creation.
 - Edges only change on node insertion/removal (never on data mutation).
 - No hidden caches; traversal is over the underlying graph data structure.
-- Reverse edges only appear when explicitly requested via `bidirectional`.
+- Reverse edges only appear if a separate successful handshake for that direction occurs.
 
 ## License
 

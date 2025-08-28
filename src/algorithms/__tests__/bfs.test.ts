@@ -5,22 +5,14 @@ import { bfs } from '../../algorithms/bfs';
 interface Item { v: number; type?: string }
 
 describe('bfs', () => {
-  it('traverses reachable nodes in breadth-first order', () => {
+  it('traverses reachable nodes in breadth-first order (mutual consent)', () => {
     const mgr = new NetworkManager<Item>();
-    // Rules: connect to smaller value; bidirectional for same type
-    const connectToSmaller = { match: (s: Item, t: Item) => s.v > t.v };
-    const sameType = { match: (s: Item, t: Item) => !!s.type && s.type === t.type, bidirectional: true };
-
-    mgr.createNode('n1', { v: 1, type: 'x' }, [sameType]);
-    mgr.createNode('n2', { v: 2, type: 'x' }, [connectToSmaller]); // edges: n2->n1 + sameType n2<->n1
-    mgr.createNode('n3', { v: 3 }, [connectToSmaller]); // edges: n3->n1, n3->n2
-
-    const n4 = mgr.createNode('n4', { v: 4 }, [connectToSmaller]); // edges: n4->n1,n2,n3
-
-    const order = bfs(mgr.network, n4, {})
-      .map(n => n.id);
-    // From n4, neighbors (level1) = n1,n2,n3 (order determined by insertion/Set iteration).
-    // Level2 will include those reachable from its level1 nodes (but already visited avoidance).
+    const universal = { match: () => true };
+    const n1 = mgr.createNode('n1', { v: 1 }, [universal]);
+    const n2 = mgr.createNode('n2', { v: 2 }, [universal]);
+    const n3 = mgr.createNode('n3', { v: 3 }, [universal]);
+    const n4 = mgr.createNode('n4', { v: 4 }, [universal]);
+    const order = bfs(mgr.network, n4, {}).map(n => n.id);
     expect(order[0]).toBe('n4');
     expect(new Set(order.slice(1))).toEqual(new Set(['n1', 'n2', 'n3']));
     expect(order.length).toBe(4);
@@ -28,8 +20,9 @@ describe('bfs', () => {
 
   it('accepts start id string', () => {
     const mgr = new NetworkManager<Item>();
-    mgr.createNode('a', { v: 1 });
-    mgr.createNode('b', { v: 2 }, [{ match: (s: Item, t: Item) => s.v > t.v }]);
+    const rule = { match: (s: Item, t: Item) => true };
+    mgr.createNode('a', { v: 1 }, [rule]);
+    mgr.createNode('b', { v: 2 }, [rule]);
     const order = bfs(mgr.network, 'b', {})
       .map(n => n.id);
     expect(order).toEqual(['b', 'a']);
@@ -38,10 +31,10 @@ describe('bfs', () => {
   it('invokes visitor with depth and can early stop', () => {
     const mgr = new NetworkManager<Item>();
     // Construct a simple chain c -> b -> a so that a is only discovered after b.
-    const linkToNext = { match: (s: Item, t: Item) => s.v - 1 === t.v };
-    mgr.createNode('a', { v: 1 }); // no outgoing
-    const b = mgr.createNode('b', { v: 2 }, [linkToNext]); // b -> a
-    const c = mgr.createNode('c', { v: 3 }, [linkToNext]); // c -> b
+    const linkToNext = { match: (s: Item, t: Item) => Math.abs(s.v - t.v) === 1 }; // symmetric chain
+    const a = mgr.createNode('a', { v: 1 }, [linkToNext]);
+    const b = mgr.createNode('b', { v: 2 }, [linkToNext]);
+    const c = mgr.createNode('c', { v: 3 }, [linkToNext]);
     const seen: [string, number][] = [];
     const order = bfs(mgr.network, c, {
       visit: (node, depth) => {

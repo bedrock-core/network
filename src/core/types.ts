@@ -1,5 +1,12 @@
 import { Graph } from 'graph-data-structure';
 
+export enum RuleDirection {
+  Outgoing = 'outgoing',
+  Incoming = 'incoming',
+  Both = 'both',
+}
+
+
 /**
  * Pure, reusable edge‑generation rule.
  *
@@ -28,22 +35,33 @@ import { Graph } from 'graph-data-structure';
  *  - Provide a cheap `targetFilter` when you can prune most candidates quickly
  *    before invoking the (potentially heavier) `match` predicate.
  *
- * Directionality:
- *  - If `bidirectional` is true and the rule matches for source->target, an
- *    explicit reverse edge target->source is also inserted (two directed edges).
+ * Directionality model (independent handshakes):
+ *  - Rules carry a direction: outgoing | incoming | both (default both).
+ *  - A directed edge A->B is created at insertion time of one of the nodes if AND ONLY IF:
+ *      (1) A has at least one rule whose direction permits initiation (outgoing|both) AND whose
+ *          optional targetFilter + match(A,B) both succeed; AND
+ *      (2) B has at least one rule whose direction permits acceptance (incoming|both) AND whose
+ *          match(B,A) succeeds.
+ *  - The reverse edge B->A is evaluated independently under the same criteria. Thus one‑way edges
+ *    can exist if only one direction's handshake succeeds.
+ *  - Evaluation occurs when a node is inserted against all existing nodes (and vice versa for
+ *    future insertions). Node data mutation does NOT trigger re-evaluation.
+ *  - To change edges based on data, remove & re-add the affected node(s).
  */
 export interface Rule<T> {
-
   /**
-   * Decide if an edge from source->target should exist.
-   * Must be pure; no side effects; deterministic for given inputs.
+   * Direction this rule applies to. Defaults to 'both'.
+   *  - outgoing: initiates connections.
+   *  - incoming: accepts connection attempts.
+   *  - both: does both.
+   */
+  direction?: RuleDirection;
+  /**
+   * Predicate for desire / acceptance. For outgoing/both it's evaluated with (source,target).
+   * For incoming/both (acceptance) it's evaluated with (acceptor, initiator).
    */
   match: (sourceObj: T, targetObj: T) => boolean;
-
-  /** When true, also create target->source edge. */
-  bidirectional?: boolean;
-
-  /** Optional cheap pre-filter to skip most non-viable targets before calling match. */
+  /** Optional cheap pre-filter for outgoing initiation only. */
   targetFilter?: (targetObj: T) => boolean;
 }
 
