@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       bump:
-        description: 'Version bump (patch | minor | major | explicit x.y.z)'
+        description: 'Version bump (patch | minor | major)'
         required: true
         type: string
       notes:
@@ -54,7 +54,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           version-type: ${{ inputs.bump }}
-          commit-message: 'chore: release {{version}} [skip ci]'
+          commit-message: 'chore: release {{version}}'
 
       - name: Build dist
         run: yarn build
