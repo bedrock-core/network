@@ -27,6 +27,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Enable Corepack
+        run: corepack enable
+
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
@@ -35,9 +38,6 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           scope: '@bedrock-core'
           always-auth: true
-
-      - name: Enable Corepack
-        run: corepack enable
 
       - name: Install deps
         run: yarn install --immutable
