@@ -59,7 +59,7 @@ describe('NetworkManager', () => {
     const mgr = new NetworkManager<Item>();
     const oddAcceptEven: Rule<Item> = { targetFilter: t => t.value % 2 === 0, match: (s, t) => s.value % 2 === 1 && t.value % 2 === 0 };
     const odd1 = mgr.createNode('odd1', { value: 1 }, [oddAcceptEven]);
-    const odd3 = mgr.createNode('odd3', { value: 3 }, [oddAcceptEven]);
+    mgr.createNode('odd3', { value: 3 }, [oddAcceptEven]);
     const even2 = mgr.createNode('even2', { value: 2 }, [evenToOddRule]);
     const evenAdj = [...mgr.network.adjacent(even2)!].map(n => n.id).sort();
     const odd1Adj = [...mgr.network.adjacent(odd1)!].map(n => n.id).sort();

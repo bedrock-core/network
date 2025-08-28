@@ -3,9 +3,8 @@ import { Graph } from 'graph-data-structure';
 export enum RuleDirection {
   Outgoing = 'outgoing',
   Incoming = 'incoming',
-  Both = 'both',
+  Both = 'both'
 }
-
 
 /**
  * Pure, reusable edge‑generation rule.
@@ -49,6 +48,7 @@ export enum RuleDirection {
  *  - To change edges based on data, remove & re-add the affected node(s).
  */
 export interface Rule<T> {
+
   /**
    * Direction this rule applies to. Defaults to 'both'.
    *  - outgoing: initiates connections.
@@ -56,11 +56,13 @@ export interface Rule<T> {
    *  - both: does both.
    */
   direction?: RuleDirection;
+
   /**
    * Predicate for desire / acceptance. For outgoing/both it's evaluated with (source,target).
    * For incoming/both (acceptance) it's evaluated with (acceptor, initiator).
    */
   match: (sourceObj: T, targetObj: T) => boolean;
+
   /** Optional cheap pre-filter for outgoing initiation only. */
   targetFilter?: (targetObj: T) => boolean;
 }

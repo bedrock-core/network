@@ -8,9 +8,10 @@ describe('bfs', () => {
   it('traverses reachable nodes in breadth-first order (mutual consent)', () => {
     const mgr = new NetworkManager<Item>();
     const universal = { match: () => true };
-    const n1 = mgr.createNode('n1', { v: 1 }, [universal]);
-    const n2 = mgr.createNode('n2', { v: 2 }, [universal]);
-    const n3 = mgr.createNode('n3', { v: 3 }, [universal]);
+    // create additional nodes (n1..n3)
+    mgr.createNode('n1', { v: 1 }, [universal]);
+    mgr.createNode('n2', { v: 2 }, [universal]);
+    mgr.createNode('n3', { v: 3 }, [universal]);
     const n4 = mgr.createNode('n4', { v: 4 }, [universal]);
     const order = bfs(mgr.network, n4, {}).map(n => n.id);
     expect(order[0]).toBe('n4');
@@ -20,7 +21,7 @@ describe('bfs', () => {
 
   it('accepts start id string', () => {
     const mgr = new NetworkManager<Item>();
-    const rule = { match: (s: Item, t: Item) => true };
+    const rule = { match: (_s: Item, _t: Item) => true };
     mgr.createNode('a', { v: 1 }, [rule]);
     mgr.createNode('b', { v: 2 }, [rule]);
     const order = bfs(mgr.network, 'b', {})
@@ -32,7 +33,7 @@ describe('bfs', () => {
     const mgr = new NetworkManager<Item>();
     // Construct a simple chain c -> b -> a so that a is only discovered after b.
     const linkToNext = { match: (s: Item, t: Item) => Math.abs(s.v - t.v) === 1 }; // symmetric chain
-    const a = mgr.createNode('a', { v: 1 }, [linkToNext]);
+    mgr.createNode('a', { v: 1 }, [linkToNext]);
     const b = mgr.createNode('b', { v: 2 }, [linkToNext]);
     const c = mgr.createNode('c', { v: 3 }, [linkToNext]);
     const seen: [string, number][] = [];
