@@ -72,12 +72,13 @@ export interface Rule<T> {
  *
  * Fields:
  *  - id: caller-supplied stable identifier (must be unique in graph scope).
- *  - data: domain payload (not copied; mutate with caution because edges are NOT auto-updated).
- *  - rules: immutable array of NodeRule objects evaluated only at insertion time(s) described above.
+ *  - data: domain payload. Can be mutated directly for performance, or via updateNodeData() for edge recalculation.
+ *  - rules: immutable array of Rule objects evaluated at insertion time and when updateNodeData() is called.
  *
- * Mutation guidelines:
+ * Data mutation guidelines:
+ *  - Direct mutation: Modify data in-place for performance when edges don't need updating.
+ *  - updateNodeData(): Use when data changes should trigger edge recalculation.
  *  - Do not push/pop rules after creation; instead recreate the node if rule set must change.
- *  - If you change data in-place and want edges to reflect new values, remove and re-add the node.
  */
 export interface Node<T> {
   id: string;

@@ -88,6 +88,50 @@ describe('NetworkManager', () => {
     expect([...aAdjPost].map(n => n.id)).toContain(b.id);
   });
 
+  it('recalculates edges when updateNodeData is called', () => {
+    const mgr = new NetworkManager<Item>();
+    const a = mgr.createNode('a', { value: 10, kind: 'x' }, [sameKindRule]);
+    const b = mgr.createNode('b', { value: 5, kind: 'x' }, [sameKindRule]);
+
+    // Initially connected due to same kind
+    expect([...mgr.network.adjacent(a)!].map(n => n.id)).toContain('b');
+    expect([...mgr.network.adjacent(b)!].map(n => n.id)).toContain('a');
+
+    // Update data to different kind - should disconnect
+    mgr.updateNodeData('b', { value: 5, kind: 'y' });
+
+    // Should no longer be connected
+    expect([...mgr.network.adjacent(a)!].map(n => n.id)).not.toContain('b');
+    expect([...mgr.network.adjacent(b)!].map(n => n.id)).not.toContain('a');
+
+    // Update back to same kind - should reconnect
+    mgr.updateNodeData('b', { value: 5, kind: 'x' });
+
+    // Should be connected again
+    expect([...mgr.network.adjacent(a)!].map(n => n.id)).toContain('b');
+    expect([...mgr.network.adjacent(b)!].map(n => n.id)).toContain('a');
+  });
+
+  it('direct data mutation does not recalculate edges automatically', () => {
+    const mgr = new NetworkManager<Item>();
+    const a = mgr.createNode('a', { value: 10, kind: 'x' }, [sameKindRule]);
+    const b = mgr.createNode('b', { value: 5, kind: 'x' }, [sameKindRule]);
+
+    // Initially connected due to same kind
+    expect([...mgr.network.adjacent(a)!].map(n => n.id)).toContain('b');
+
+    // Directly mutate data to different kind
+    const nodeB = mgr.getNode('b')!;
+    nodeB.data.kind = 'y';
+
+    // Should still be connected (edges not recalculated)
+    expect([...mgr.network.adjacent(a)!].map(n => n.id)).toContain('b');
+    expect([...mgr.network.adjacent(b)!].map(n => n.id)).toContain('a');
+
+    // Verify data was actually changed
+    expect(mgr.getNode('b')?.data.kind).toBe('y');
+  });
+
   it('auto-instantiates provided network class subtype when only constructor is passed', () => {
     class CustomNetwork extends Network<Item> {
       readonly kind = 'custom';
@@ -192,5 +236,45 @@ describe('NetworkManager', () => {
     expect(aAdj).toContain('b');
     expect(bAdj).not.toContain('a'); // still one-way
     expect(cAdj).toEqual(['b']);
+  });
+
+  it('reflects direct data mutations when retrieved later (reference semantics)', () => {
+    const mgr = new NetworkManager<Item>();
+    const originalData = { value: 10, kind: 'mutable' };
+    mgr.createNode('test', originalData);
+
+    // Verify initial state
+    expect(mgr.getNode('test')?.data.value).toBe(10);
+    expect(mgr.getNode('test')?.data.kind).toBe('mutable');
+
+    // Directly mutate the original data object
+    originalData.value = 999;
+    originalData.kind = 'changed';
+
+    // Check if changes are reflected when we retrieve the node
+    const retrievedNode = mgr.getNode('test');
+    expect(retrievedNode?.data.value).toBe(999);
+    expect(retrievedNode?.data.kind).toBe('changed');
+
+    // Also verify the node's data is the same reference
+    expect(retrievedNode?.data).toBe(originalData);
+  });
+
+  it('reflects mutations made through node reference obtained from network', () => {
+    const mgr = new NetworkManager<Item>();
+    mgr.createNode('test', { value: 5, kind: 'original' });
+
+    // Get the node and mutate its data directly
+    const retrievedNode = mgr.getNode('test')!;
+    retrievedNode.data.value = 42;
+    retrievedNode.data.kind = 'modified';
+
+    // Get the node again and verify changes persist
+    const nodeAgain = mgr.getNode('test')!;
+    expect(nodeAgain.data.value).toBe(42);
+    expect(nodeAgain.data.kind).toBe('modified');
+
+    // Verify it's the same object reference
+    expect(nodeAgain.data).toBe(retrievedNode.data);
   });
 });

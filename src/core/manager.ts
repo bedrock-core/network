@@ -1,8 +1,14 @@
 import { Network, Node, Rule, RuleDirection } from './types';
 
 /**
- * Handles node creation/removal.
- * Edges are updated when nodes are added or removed.
+ * Handles node creation/removal and data updates.
+ * Edges are updated when nodes are added, removed, or when data is updated via updateNodeData().
+ *
+ * Data Mutation Options:
+ *  - updateNodeData(): Updates data and recalculates all edges for the node (slower)
+ *  - Direct mutation: Modify node.data directly via getNode(id).data (faster but edges not updated)
+ *
+ * Choose the appropriate method based on whether you need edge recalculation after data changes.
  */
 export class NetworkManager<T, N extends Network<T> = Network<T>> {
   readonly network: N;
@@ -74,7 +80,13 @@ export class NetworkManager<T, N extends Network<T> = Network<T>> {
   }
 
   /**
-   * Update the data of a node.
+   * Update the data of a node and recalculate its edges.
+   * This removes all existing edges touching the node and recreates them
+   * based on the new data and current rules.
+   *
+   * Note: For performance-critical scenarios where edge recalculation isn't needed,
+   * you can directly mutate the node's data via getNode(id).data without calling this method.
+   *
    * @param id The unique identifier for the node.
    * @param newData The new data to associate with the node.
    * @throws If the node does not exist.
@@ -86,7 +98,30 @@ export class NetworkManager<T, N extends Network<T> = Network<T>> {
       throw new Error(`No such node: ${id}`);
     }
 
+    // Remove all edges touching this node
+    const adjacentNodes = [...this.network.adjacent(node) ?? []];
+    for (const adjacent of adjacentNodes) {
+      this.network.removeEdge(node, adjacent);
+      this.network.removeEdge(adjacent, node);
+    }
+
+    // Update the data
     node.data = newData;
+
+    // Recalculate edges with all other nodes
+    for (const other of this.network.nodes) {
+      if (other === node) {
+        continue;
+      }
+
+      if (this.tryHandshake(node, other)) {
+        this.network.addEdge(node, other);
+      }
+
+      if (this.tryHandshake(other, node)) {
+        this.network.addEdge(other, node);
+      }
+    }
   }
 
   /**

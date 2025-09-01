@@ -39,8 +39,7 @@
     "clean": "rimraf dist",
     "lint": "eslint .",
     "test": "vitest run",
-    "coverage": "vitest run --coverage",
-    "sdks": "yarn dlx @yarnpkg/sdks vscode"
+    "coverage": "vitest run --coverage"
   },
   "packageManager": "yarn@4.9.3",
   "devDependencies": {

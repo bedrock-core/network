@@ -2,6 +2,12 @@ import markdown from "@eslint/markdown";
 import stylistic from "@stylistic/eslint-plugin";
 import { defineConfig } from "eslint/config";
 import tseslint from "typescript-eslint";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export default defineConfig([
   {
@@ -25,7 +31,7 @@ export default defineConfig([
       sourceType: "module",
       parserOptions: {
         project: ["tsconfig.eslint.json"],
-        tsconfigRootDir: ".",
+        tsconfigRootDir: __dirname,
       },
     },
 
